@@ -2,12 +2,11 @@ import tweepy
 import re
 from time import time, sleep
 from datetime import datetime
+import os
 import glob
 
-auth = tweepy.OAuthHandler('CONSUMERKEY',
-                           'CONSUMERSECRET')
-auth.set_access_token('ACCESSTOKEN',
-                      'ACCESSTOKENSECRET')
+auth = tweepy.OAuthHandler('CONSUMERKEY','CONSUMERSECRET')
+auth.set_access_token('ACCESSTOKEN', 'ACCESSTOKENSECRET')
 
 #evil_tweets=['690681645905477632']
 
@@ -22,8 +21,11 @@ number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['re
 number_of_blocked = 0
 j = 0;
 blocked = []
-files = glob.glob("data/*.csv")
-
+if (os.path.exists("data")):
+    files = glob.glob("data/*.csv")
+else:
+    os.makedir("data")
+    files = []
 
 def do_exception (e, twerp_type='Tweeter'):
     print str(e)
