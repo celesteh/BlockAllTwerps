@@ -27,6 +27,14 @@ else:
     os.makedir("data")
     files = []
 
+def display_user (twerp):
+    name = twerp.name
+    handle = twerp.screen_name
+    img = twerp.profile_image_url
+    print(handle, name, img)
+    #print twerp
+
+
 def do_exception (e, twerp_type='Tweeter'):
     print str(e)
     print 'Exception: {}'.format(twerp_type)
@@ -109,11 +117,12 @@ def block_twerp ( twerp, type_str, i=0 ):
         if friendship[0].followed_by:
             print '------Spared!'
         else:
-                number_of_blocked += 1
-                #print 'blocked ({} already)'.format(number_of_blocked)
-                api.create_block(screen_name=twerp.screen_name)
-                blocked.append(twerp.id_str)
-                blocked.sort()
+            display_user(twerp)
+            number_of_blocked += 1
+            #print 'blocked ({} already)'.format(number_of_blocked)
+            api.create_block(screen_name=twerp.screen_name)
+            blocked.append(twerp.id_str)
+            blocked.sort()
 
 
     return i+1
@@ -151,10 +160,10 @@ while True:
                         tweet = message.text
 
                         check_limit(True)
-                        try:
-                            api.update_status('Now blocking tweet {}'.format(tweet))
-                        except Exception, e:
-                            print str(e)
+                        #try:
+                        #    api.update_status('Now blocking tweet {}'.format(tweet))
+                        #except Exception, e:
+                        #    print str(e)
 
                         number_of_blocked = 0
                         j = 0;
@@ -162,7 +171,7 @@ while True:
                         status = api.get_status(tweet)
                         #print status
                         twerp = status.user  #.screen_name
-                        #print twerp
+                        display_user(twerp)
                         block_twerp(twerp, 'Original',  0)
                         check_limit()
                         block_followers(twerp )
