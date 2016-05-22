@@ -4,34 +4,81 @@ from time import time, sleep
 from datetime import datetime
 import os
 import glob
+import Tkinter as tk
+import sys
 
-auth = tweepy.OAuthHandler('CONSUMERKEY','CONSUMERSECRET')
-auth.set_access_token('ACCESSTOKEN', 'ACCESSTOKENSECRET')
-
-#evil_tweets=['690681645905477632']
-
-api = tweepy.API(auth)
-
-me = api.me()
-
-friendship_limit = api.rate_limit_status()['resources']['friendships']['/friendships/show']
-number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
-
-
+root = None
+mainframe = None
+api = None
+me = None
+number_of_friendship_requests = 0
 number_of_blocked = 0
 j = 0;
 blocked = []
-if (os.path.exists("data")):
-    files = glob.glob("data/*.csv")
-else:
-    os.makedir("data")
-    files = []
+files = []
 
-def display_user (twerp):
+def init():
+    global root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
+    #gui
+    if (len(sys.argv) > 1):
+        print('has gui')
+        root = tk.Tk()
+        if (sys.argv[1] == '-fullscreen'):
+            print('is fullscreen')
+            root.attributes('-fullscreen', True)
+        else:
+            print ('not fullscreen')
+        root.title('BlockAllTwerps')
+        mainframe = tk.Frame(root)
+
+    #twitter
+    auth = tweepy.OAuthHandler('CONSUMERKEY','CONSUMERSECRET')
+    auth.set_access_token('ACCESSTOKEN', 'ACCESSTOKENSECRET')
+
+
+    api = tweepy.API(auth)
+
+    try:
+        rls = api.rate_limit_status()['resources']
+        friendship_limit = rls ['friendships']['/friendships/show']
+        number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
+        lookups = (rls['users']["/users/show/:id"]['limit'] - rls['users']["/users/show/:id"]['remaining'])
+        print('lookups', lookups)
+        number_of_friendship_requests = max(number_of_friendship_requests, lookups)
+        check_limit()
+        me = api.me()
+    except tweepy.RateLimitError:
+        sleep(15*60)
+        number_of_friendship_requests = 0
+        me = api.me()
+
+
+    if (os.path.exists("data")):
+        files = glob.glob("data/*.csv")
+    else:
+        os.makedir("data")
+        files = []
+
+    if root:
+        print ('start gui')
+
+def update_gui ():
+    global root
+    if root:
+        print('update')
+        root.update()
+        root.after(500, update_gui)
+
+def display_user (twerp, duplicate =False):
     name = twerp.name
     handle = twerp.screen_name
     img = twerp.profile_image_url
+    img = img.replace('normal', '400x400')
     print(handle, name, img)
+
+    global root
+    if root:
+        root.update()
     #print twerp
 
 
@@ -58,6 +105,16 @@ def dump_blocks ():
             files = glob.glob("data/*.csv")
         except Exception, e:
             do_exception('file writing')
+
+def limit_handled(cursor):
+    while True:
+        try:
+            yield cursor.next()
+        except tweepy.RateLimitError:
+            dump_blocks()
+            time.sleep(15 * 60)
+
+
 
 def check_duplicate ( id_str ):
 
@@ -89,6 +146,7 @@ def check_limit (force=False):
     try:
         if (number_of_friendship_requests >= 175) or force: # rate limit is 180 per 15 minutes
             reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
+            print('')
             continue_time = datetime.fromtimestamp(reset).strftime('%H:%M:%S')
             print 'waiting for rate limit... (will continue at {})'.format(continue_time)
             sleep(reset - time() + 1)
@@ -109,6 +167,7 @@ def block_twerp ( twerp, type_str, i=0 ):
 
     if check_duplicate(twerp.id_str):
         print '---duplicate'
+        display_user(twerp, True)
     else:
 
         check_limit()
@@ -117,22 +176,37 @@ def block_twerp ( twerp, type_str, i=0 ):
         if friendship[0].followed_by:
             print '------Spared!'
         else:
-            display_user(twerp)
+            display_user(twerp, False)
             number_of_blocked += 1
             #print 'blocked ({} already)'.format(number_of_blocked)
             api.create_block(screen_name=twerp.screen_name)
             blocked.append(twerp.id_str)
             blocked.sort()
 
-
+    sleep(1)
     return i+1
 
 def block_followers ( twerp ):
+    last_i = 0
+    this_i = 0
+    unchanged = 0
     try:
+        #for i, follower in limit_handled(tweepy.Cursor(api.followers, screen_name=twerp.screen_name).items()):
         for i, follower in enumerate(tweepy.Cursor(api.followers, screen_name=twerp.screen_name).items()):
 
             try:
-                block_twerp(follower, 'Follower',  i)
+                this_i = block_twerp(follower, 'Follower',  i)
+
+                # if we've had a lot of duplicates, we still need to be aware of API limits
+                if (last_i == this_i):
+                    unchanged +=1
+                    if (unchanged >= 95):
+                        check_limit()
+                        unchanged = 0
+                else: #we've blocked someone
+                    unchanged = 0
+
+
             except Exception, e:
               do_exception(e, 'follower')
             check_limit()
@@ -142,14 +216,23 @@ def block_followers ( twerp ):
 
 ##################
 
+init()
 
+if root:
+    root.after(500, update_gui)
 
+if (number_of_friendship_requests > 100):
+    check_limit(True)
+else:
+    check_limit()
+
+first = True
 
 while True:
-
     try:
         for m, message in enumerate(tweepy.Cursor(api.direct_messages).items()):
             try:
+                check_limit()
                 friendship = api.show_friendship(source_screen_name=message.sender_screen_name,
                                                      target_screen_name=me.screen_name)
                 if friendship[0].followed_by:
@@ -159,7 +242,10 @@ while True:
                         #print message.text
                         tweet = message.text
 
-                        check_limit(True)
+                        if first:
+                            first = False
+                        else:
+                            check_limit(True)
                         #try:
                         #    api.update_status('Now blocking tweet {}'.format(tweet))
                         #except Exception, e:
@@ -173,15 +259,15 @@ while True:
                         twerp = status.user  #.screen_name
                         display_user(twerp)
                         block_twerp(twerp, 'Original',  0)
-                        check_limit()
+                        #check_limit()
                         block_followers(twerp )
 
-                        check_limit()
+                        #check_limit()
                         try:
                             for retweet in api.retweets(tweet, 500):
                                 twerp = retweet.user #.screen_name
                                 j = block_twerp(twerp, 'RTer',  j)
-                                check_limit ()
+                                #check_limit ()
                                 block_followers(twerp)
                         except Exception, e:
                             do_exception(e, 'rewteeter')
