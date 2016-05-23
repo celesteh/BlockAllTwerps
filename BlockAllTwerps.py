@@ -240,7 +240,8 @@ def do_exception (e, twerp_type='Tweeter'):
     print 'Recovering'
     dump_blocks()
     #files = glob.glob("data/*.csv")
-    check_limit(True)
+    #check_limit(True)
+    check_limit()
     return
 
 
