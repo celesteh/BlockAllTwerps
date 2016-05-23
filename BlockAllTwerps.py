@@ -46,6 +46,7 @@ def init():
 
     api = tweepy.API(auth)
 
+    #check_limit(True) #testing
     #do_wait(5) # testing
     try:
         rls = api.rate_limit_status()['resources']
@@ -89,24 +90,24 @@ def update_gui ():
         root.update()
         root.after(500, update_gui)
 
-def display_wait ( wait):
-    global mainframe, root
-
-    if root:
-        try:
-            if mainframe:
-                mainframe.destroy()
-            mainframe = tk.Frame(root, bg="black")
-            mainframe.pack(padx=5, pady=5, fill="both", expand=True)
-            text = 'Waiting for rate limit... (Will continue in {})'.format(wait)
-            label = tk.Label(mainframe, text=text, font=("FreeSans", 40), fg="white", bg="black", height=2)
-            label.pack(fill=tk.BOTH, expand=1)
-            #label.pack(fill=tk.BOTH, expand=1)
-            root.update()
-        except Exception, e:
-            dump_blocks()
-            print('gui failed')
-            sys.exit(1)
+#def display_wait ( wait):
+#    global mainframe, root
+#
+#    if root:
+#        try:
+#            if mainframe:
+#                mainframe.destroy()
+#            mainframe = tk.Frame(root, bg="black")
+#            mainframe.pack(padx=5, pady=5, fill="both", expand=True)
+#            text = 'Waiting for rate limit... (Will continue in {})'.format(wait)
+#            label = tk.Label(mainframe, text=text, font=("FreeSans", 40), fg="white", bg="black", height=2)
+#            label.pack(fill=tk.BOTH, expand=1)
+#            #label.pack(fill=tk.BOTH, expand=1)
+#            root.update()
+#        except Exception, e:
+#            dump_blocks()
+#            print('gui failed')
+#            sys.exit(1)
 
 def display_user (twerp, duplicate =False):
     global mainframe, root
@@ -193,7 +194,7 @@ def do_wait(sleep_time):
             label.pack(fill=tk.BOTH, expand=1)
             #label.pack(fill=tk.BOTH, expand=1)
             root.update()
-            for i in xrange(sleep_time):
+            for i in xrange(int(floor(sleep_time))):
                 disp_time = calc_string(delta)
                 text = 'Waiting for rate limit... (Will continue in {})'.format(disp_time)
                 label.text = text
@@ -284,6 +285,7 @@ def check_limit (force=False):
             print 'waiting for rate limit... (will continue at {})'.format(continue_time)
             #display_wait(continue_time)
             #sleep(reset - time() + 1)
+            print(reset - time() + 1)
             do_wait(reset - time() + 1)
             number_of_friendship_requests = 0
     except Exception, e:
@@ -377,10 +379,11 @@ while True:
                             first = False
                         else:
                             check_limit(True)
-                        #try:
-                        #    api.update_status('Now blocking tweet {}'.format(tweet))
-                        #except Exception, e:
-                        #    print str(e)
+                        try:
+                            api.update_status('Now blocking tweet {}'.format(tweet))
+                        except Exception, e:
+                            print str(e)
+                            do_exception (e, 'tweeting')
 
                         number_of_blocked = 0
                         j = 0;
@@ -388,7 +391,7 @@ while True:
                         status = api.get_status(tweet)
                         #print status
                         twerp = status.user  #.screen_name
-                        display_user(twerp)
+                        #display_user(twerp)
                         block_twerp(twerp, 'Original',  0)
                         #check_limit()
                         block_followers(twerp )
