@@ -6,10 +6,27 @@ program_dir=`pwd`
 popd > /dev/null
 
 sleep 20
+cd $program_dir
 
 while true
     do
-      cd $program_dir
-      /usr/bin/python BlockAllTwerps.py -fullscreen
-      sleep 5
+
+        touch /tmp/blockalltwerps
+
+        sleep 5
+
+        git pull
+        sleep 5
+
+        echo "starting script"
+        /usr/bin/python BlockAllTwerps.py -fullscreen &
+        pid=$!
+
+        ./keepAlive.sh $pid &
+        alive_pid=$!
+
+        wait $pid
+        kill $alive_pid
+
+        sleep 5
 done

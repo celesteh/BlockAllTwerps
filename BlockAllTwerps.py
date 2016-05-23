@@ -9,6 +9,7 @@ import sys
 from PIL import Image, ImageTk
 import urllib
 import io
+from math import floor
 
 
 root = None
@@ -26,13 +27,13 @@ def init():
     global egg, root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
     #gui
     if (len(sys.argv) > 1):
-        print('has gui')
+        #print('has gui')
         root = tk.Tk()
         if (sys.argv[1] == '-fullscreen'):
-            print('is fullscreen')
+            #print('is fullscreen')
             root.attributes('-fullscreen', True)
         else:
-            print ('not fullscreen')
+            #print ('not fullscreen')
         root.title('BlockAllTwerps')
         root.configure(background='black')
         mainframe = tk.Frame(root)
@@ -45,12 +46,13 @@ def init():
 
     api = tweepy.API(auth)
 
+    #do_wait(5) # testing
     try:
         rls = api.rate_limit_status()['resources']
         friendship_limit = rls ['friendships']['/friendships/show']
         number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
         lookups = (rls['users']["/users/show/:id"]['limit'] - rls['users']["/users/show/:id"]['remaining'])
-        print('lookups', lookups)
+        #print('lookups', lookups)
         number_of_friendship_requests = max(number_of_friendship_requests, lookups)
 
         if (number_of_friendship_requests >= 100):
@@ -71,13 +73,19 @@ def init():
         os.makedir("data")
         files = []
 
-    if root:
-        print ('start gui')
+    #if root:
+        #print ('start gui')
+
+def touch ():
+    print ('touch')
+    if not os.path.exists('/tmp/blockalltwerps'):
+        open('/tmp/blockalltwerps', 'a').close()
+    return
 
 def update_gui ():
     global root
     if root:
-        print('update')
+        #print('update')
         root.update()
         root.after(500, update_gui)
 
@@ -90,7 +98,7 @@ def display_wait ( wait):
                 mainframe.destroy()
             mainframe = tk.Frame(root, bg="black")
             mainframe.pack(padx=5, pady=5, fill="both", expand=True)
-            text = 'Waiting for rate limit... (Will continue at {})'.format(wait)
+            text = 'Waiting for rate limit... (Will continue in {})'.format(wait)
             label = tk.Label(mainframe, text=text, font=("FreeSans", 40), fg="white", bg="black", height=2).pack(fill=tk.BOTH, expand=1)
             #label.pack(fill=tk.BOTH, expand=1)
             root.update()
@@ -151,14 +159,35 @@ def display_user (twerp, duplicate =False):
             sys.exit(1)
     #print twerp
 
+def do_wait(sleep_time):
+    #print('wait')
+    if root:
+        delta = datetime.timedelta(seconds=sleep_time)
+        for i in xrange(sleep_time):
+            #delta = (continue_time - datetime.datetime.now())#.strftime('%H:%M:%S')
+            #print('delta', delta.seconds)
+            if delta.seconds >= 1:
+                #print('fuck you')
+                minutes = int(floor(delta.seconds/60))
+                seconds = delta.seconds % 60
+                disp_time = '{:0>2d}:{:0>2d}'.format(minutes, seconds)
+            else:
+                #print('and the horse etc')
+                disp_time = '0:00'
+            #print(disp_time)
+            display_wait(disp_time)
+            delta = delta - datetime.timedelta(seconds=1)
+            sleep (1)
+            if (i % 60 == 0): # once per minute
+                touch()
+    else :
+        sleep(sleep_time)
 
 def do_exception (e, twerp_type='Tweeter'):
+    sleep_time = 60 * 5
     print str(e)
     print 'Exception: {}'.format(twerp_type)
-    continue_time = (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime('%H:%M:%S')
-    print(continue_time)
-    display_wait(continue_time)
-    sleep(60 * 5)
+    do_wait(sleep_time)
     print 'Recovering'
     dump_blocks()
     #files = glob.glob("data/*.csv")
@@ -185,7 +214,8 @@ def limit_handled(cursor):
             yield cursor.next()
         except tweepy.RateLimitError:
             dump_blocks()
-            time.sleep(15 * 60)
+            #time.sleep(15 * 60)
+            do_wait(15*60)
 
 
 
@@ -216,14 +246,16 @@ def check_limit (force=False):
     global number_of_friendship_requests, api
 
     number_of_friendship_requests += 1
+    touch()
     try:
         if (number_of_friendship_requests >= 175) or force: # rate limit is 180 per 15 minutes
             reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
             print('')
             continue_time = datetime.datetime.fromtimestamp(reset).strftime('%H:%M:%S')
             print 'waiting for rate limit... (will continue at {})'.format(continue_time)
-            display_wait(continue_time)
-            sleep(reset - time() + 1)
+            #display_wait(continue_time)
+            #sleep(reset - time() + 1)
+            do_wait(reset - time() + 1)
             number_of_friendship_requests = 0
     except Exception, e:
         do_exception(e, 'api limit')
