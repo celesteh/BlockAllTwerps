@@ -17,6 +17,7 @@ mainframe = None
 egg = None
 api = None
 me = None
+config = {}
 number_of_friendship_requests = 0
 number_of_blocked = 0
 j = 0;
@@ -24,7 +25,20 @@ blocked = []
 files = []
 
 def init():
-    global egg, root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
+    global config, egg, root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
+
+
+
+    file_name = "BlockAllTwerps.config"
+    config_file= open(file_name)
+
+    for line in config_file:
+        line = line.strip()
+        if line and line[0] is not "#" and line[-1] is not "=":
+            var,val = line.rsplit("=",1)
+            config[var.strip()] = val.strip()
+    config_file.close()
+
     #gui
     if (len(sys.argv) > 1):
         #print('has gui')
@@ -40,8 +54,8 @@ def init():
         egg = Image.open('default_profile_5_400x400.jpg')
 
     #twitter
-    auth = tweepy.OAuthHandler('CONSUMERKEY','CONSUMERSECRET')
-    auth.set_access_token('ACCESSTOKEN', 'ACCESSTOKENSECRET')
+    auth = tweepy.OAuthHandler(config['consumer_key'], config['consumer_secret'])
+    auth.set_access_token(config['access_token'], config['access_token_secret'])
 
 
     api = tweepy.API(auth)
@@ -110,7 +124,7 @@ def update_gui ():
 #            sys.exit(1)
 
 def display_user (twerp, duplicate =False):
-    global mainframe, root
+    global mainframe, root, config
 
     #name = twerp.name
     #handle = twerp.screen_name
@@ -148,12 +162,12 @@ def display_user (twerp, duplicate =False):
                 photo = ImageTk.PhotoImage(image)
                 #photo.resize(size)
 
-                title =  tk.Label(mainframe, text="Blocking", font=("FreeSans", 40), fg="white", bg="black", height=2).grid(row=0, sticky=tk.W)
+                title =  tk.Label(mainframe, text="Blocking", font=("FreeSans", int(config['title_size'])), fg="white", bg="black", height=2).grid(row=0, sticky=tk.W)
                 pic = tk.Label(mainframe, image=photo, height=440, bg="black").grid(row=1, rowspan=10)
-                name = tk.Label(mainframe, text=twerp.name, font=("FreeSans", 44), fg="white", bg="black").grid(row=5, column=2, sticky=tk.W)
-                handle = tk.Label(mainframe, text='@'+twerp.screen_name, font=("FreeSans", 44), fg="blue", bg="black").grid(row=6, column=2, sticky=tk.W)
+                name = tk.Label(mainframe, text=twerp.name, font=("FreeSans", int(config['name_size'])), fg="white", bg="black").grid(row=5, column=2, sticky=tk.W)
+                handle = tk.Label(mainframe, text='@'+twerp.screen_name, font=("FreeSans", int(config['name_size'])), fg="blue", bg="black").grid(row=6, column=2, sticky=tk.W)
                 if duplicate:
-                    tk.Label(mainframe, text='(Duplicate... already blocked)', font=("FreeSans", 30), fg="white", bg="black").grid(row=10, column=2, sticky=tk.W)
+                    tk.Label(mainframe, text='(Duplicate... already blocked)', font=("FreeSans", int(config['dup_size'])), fg="white", bg="black").grid(row=10, column=2, sticky=tk.W)
                 root.update()
         except Exception, e:
             dump_blocks()
@@ -172,7 +186,7 @@ def calc_string(delta):
     return disp_time
 
 def do_wait(sleep_time):
-    global mainframe
+    global mainframe, config
     print('wait')
     if root:
         delta = datetime.timedelta(seconds=sleep_time)
@@ -190,7 +204,7 @@ def do_wait(sleep_time):
             text = 'Waiting for rate limit... (Will continue in {})'.format(disp_time)
             print(text)
             v.set(text)
-            label = tk.Label(mainframe, textvariable=v, font=("FreeSans", 40), fg="white", bg="black", height=2)
+            label = tk.Label(mainframe, textvariable=v, font=("FreeSans", int(config['wait_size'])), fg="white", bg="black", height=2)
             label.pack(fill=tk.BOTH, expand=1)
             #label.pack(fill=tk.BOTH, expand=1)
             root.update()
