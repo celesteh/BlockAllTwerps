@@ -6,9 +6,14 @@ import os
 import glob
 import Tkinter as tk
 import sys
+from PIL import Image, ImageTk
+import urllib
+import io
+
 
 root = None
 mainframe = None
+#subframe = None
 api = None
 me = None
 number_of_friendship_requests = 0
@@ -29,6 +34,7 @@ def init():
         else:
             print ('not fullscreen')
         root.title('BlockAllTwerps')
+        root.configure(background='black')
         mainframe = tk.Frame(root)
 
     #twitter
@@ -45,7 +51,12 @@ def init():
         lookups = (rls['users']["/users/show/:id"]['limit'] - rls['users']["/users/show/:id"]['remaining'])
         print('lookups', lookups)
         number_of_friendship_requests = max(number_of_friendship_requests, lookups)
-        check_limit()
+
+        if (number_of_friendship_requests >= 100):
+            check_limit(True)
+        else:
+            check_limit()
+
         me = api.me()
     except tweepy.RateLimitError:
         sleep(15*60)
@@ -69,22 +80,70 @@ def update_gui ():
         root.update()
         root.after(500, update_gui)
 
+def display_wait ( wait):
+    global mainframe, root
+
+    if root:
+        try:
+            if mainframe:
+                mainframe.destroy()
+            mainframe = tk.Frame(root, bg="black")
+            mainframe.pack(padx=5, pady=5, fill="both", expand=True)
+            text = 'Waiting for rate limit... (Will continue at {})'.format(wait)
+            label = tk.Label(mainframe, text=text, font=("FreeSans", 40), fg="white", bg="black", height=2).pack(fill=tk.BOTH, expand=1)
+            #label.pack(fill=tk.BOTH, expand=1)
+            root.update()
+        except Exception, e:
+            dump_blocks()
+            print('gui failed')
+            sys.exit(1)
+
 def display_user (twerp, duplicate =False):
-    name = twerp.name
-    handle = twerp.screen_name
+    global mainframe, root
+
+    #name = twerp.name
+    #handle = twerp.screen_name
     img = twerp.profile_image_url
     img = img.replace('normal', '400x400')
-    print(handle, name, img)
+    size = 400, 400
+    #print(handle, name, img)
 
-    global root
     if root:
-        root.update()
+        try:
+            if mainframe:
+                mainframe.destroy()
+            mainframe = tk.Frame(root, bg="black")
+            mainframe.pack(padx=5, pady=5, fill="both", expand=True)
+
+            fp = urllib.urlopen(img)
+            data = fp.read()
+            fp.close()
+
+            image = Image.open(io.BytesIO(data))
+            #if (image.size() != size):
+            image = image.resize((400, 400),Image.ANTIALIAS)
+            photo = ImageTk.PhotoImage(image)
+            #photo.resize(size)
+
+            title =  tk.Label(mainframe, text="Blocking", font=("FreeSans", 40), fg="white", bg="black", height=2).grid(row=0, sticky=tk.W)
+            pic = tk.Label(mainframe, image=photo, height=440, bg="black").grid(row=1, rowspan=10)
+            name = tk.Label(mainframe, text=twerp.name, font=("FreeSans", 44), fg="white", bg="black").grid(row=5, column=2, sticky=tk.W)
+            handle = tk.Label(mainframe, text='@'+twerp.screen_name, font=("FreeSans", 44), fg="blue", bg="black").grid(row=6, column=2, sticky=tk.W)
+            if duplicate:
+                tk.Label(mainframe, text='(Duplicate... already blocked)', font=("FreeSans", 30), fg="white", bg="black").grid(row=10, column=2, sticky=tk.W)
+            root.update()
+        except Exception, e:
+            dump_blocks()
+            print('gui failed')
+            sys.exit(1)
     #print twerp
 
 
 def do_exception (e, twerp_type='Tweeter'):
     print str(e)
     print 'Exception: {}'.format(twerp_type)
+    continue_time = datetime.fromtimestamp(time() + (60 * 5 * 1000)).strftime('%H:%M:%S')
+    display_wait(continue_time)
     sleep(60 * 5)
     print 'Recovering'
     dump_blocks()
@@ -149,6 +208,7 @@ def check_limit (force=False):
             print('')
             continue_time = datetime.fromtimestamp(reset).strftime('%H:%M:%S')
             print 'waiting for rate limit... (will continue at {})'.format(continue_time)
+            display_wait(continue_time)
             sleep(reset - time() + 1)
             number_of_friendship_requests = 0
     except Exception, e:
@@ -200,7 +260,7 @@ def block_followers ( twerp ):
                 # if we've had a lot of duplicates, we still need to be aware of API limits
                 if (last_i == this_i):
                     unchanged +=1
-                    if (unchanged >= 95):
+                    if (unchanged >= 10):
                         check_limit()
                         unchanged = 0
                 else: #we've blocked someone
@@ -221,10 +281,6 @@ init()
 if root:
     root.after(500, update_gui)
 
-if (number_of_friendship_requests > 100):
-    check_limit(True)
-else:
-    check_limit()
 
 first = True
 
