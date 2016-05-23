@@ -99,7 +99,8 @@ def display_wait ( wait):
             mainframe = tk.Frame(root, bg="black")
             mainframe.pack(padx=5, pady=5, fill="both", expand=True)
             text = 'Waiting for rate limit... (Will continue in {})'.format(wait)
-            label = tk.Label(mainframe, text=text, font=("FreeSans", 40), fg="white", bg="black", height=2).pack(fill=tk.BOTH, expand=1)
+            label = tk.Label(mainframe, text=text, font=("FreeSans", 40), fg="white", bg="black", height=2)
+            label.pack(fill=tk.BOTH, expand=1)
             #label.pack(fill=tk.BOTH, expand=1)
             root.update()
         except Exception, e:
@@ -158,28 +159,56 @@ def display_user (twerp, duplicate =False):
             print('gui failed')
             sys.exit(1)
     #print twerp
+def calc_string(delta):
+    if delta.seconds >= 1:
+        #print('fuck you')
+        minutes = int(floor(delta.seconds/60))
+        seconds = delta.seconds % 60
+        disp_time = '{:0>2d}:{:0>2d}'.format(minutes, seconds)
+    else:
+        #print('and the horse etc')
+        disp_time = '0:00'
+    return disp_time
 
 def do_wait(sleep_time):
-    #print('wait')
+    global mainframe
+    print('wait')
     if root:
         delta = datetime.timedelta(seconds=sleep_time)
-        for i in xrange(sleep_time):
-            #delta = (continue_time - datetime.datetime.now())#.strftime('%H:%M:%S')
-            #print('delta', delta.seconds)
-            if delta.seconds >= 1:
-                #print('fuck you')
-                minutes = int(floor(delta.seconds/60))
-                seconds = delta.seconds % 60
-                disp_time = '{:0>2d}:{:0>2d}'.format(minutes, seconds)
-            else:
-                #print('and the horse etc')
-                disp_time = '0:00'
-            #print(disp_time)
-            display_wait(disp_time)
-            delta = delta - datetime.timedelta(seconds=1)
-            sleep (1)
-            if (i % 60 == 0): # once per minute
-                touch()
+        disp_time = calc_string(delta)
+        v= tk.StringVar()
+
+        #print(disp_time)
+        try:
+            if mainframe:
+                mainframe.destroy()
+            mainframe = tk.Frame(root, bg="black")
+            print('newframe')
+            mainframe.pack(padx=5, pady=5, fill="both", expand=True)
+            print('mainframe')
+            text = 'Waiting for rate limit... (Will continue in {})'.format(disp_time)
+            print(text)
+            v.set(text)
+            label = tk.Label(mainframe, textvariable=v, font=("FreeSans", 40), fg="white", bg="black", height=2)
+            label.pack(fill=tk.BOTH, expand=1)
+            #label.pack(fill=tk.BOTH, expand=1)
+            root.update()
+            for i in xrange(sleep_time):
+                disp_time = calc_string(delta)
+                text = 'Waiting for rate limit... (Will continue in {})'.format(disp_time)
+                label.text = text
+                v.set(text)
+                print(label.text)
+                root.update()
+                delta = delta - datetime.timedelta(seconds=1)
+                sleep (1)
+                if (i % 60 == 0): # once per minute
+                    touch()
+        except Exception, e:
+            dump_blocks()
+            print('gui failed')
+            sys.exit(1)
+
     else :
         sleep(sleep_time)
 
