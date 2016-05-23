@@ -205,6 +205,11 @@ def do_wait(sleep_time):
                 sleep (1)
                 if (i % 60 == 0): # once per minute
                     touch()
+            text = 'Waiting for rate limit... (Will continue in {})'.format('00:00')
+            label.text = text
+            v.set(text)
+            print(label.text)
+            root.update()
         except Exception, e:
             dump_blocks()
             print('gui failed')
