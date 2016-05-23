@@ -32,7 +32,7 @@ def init():
         if (sys.argv[1] == '-fullscreen'):
             #print('is fullscreen')
             root.attributes('-fullscreen', True)
-        else:
+        #else:
             #print ('not fullscreen')
         root.title('BlockAllTwerps')
         root.configure(background='black')
