@@ -13,7 +13,7 @@ import io
 
 root = None
 mainframe = None
-#subframe = None
+egg = None
 api = None
 me = None
 number_of_friendship_requests = 0
@@ -23,7 +23,7 @@ blocked = []
 files = []
 
 def init():
-    global root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
+    global egg, root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
     #gui
     if (len(sys.argv) > 1):
         print('has gui')
@@ -36,6 +36,7 @@ def init():
         root.title('BlockAllTwerps')
         root.configure(background='black')
         mainframe = tk.Frame(root)
+        egg = Image.open('default_profile_5_400x400.png')
 
     #twitter
     auth = tweepy.OAuthHandler('CONSUMERKEY','CONSUMERSECRET')
@@ -122,12 +123,13 @@ def display_user (twerp, duplicate =False):
                 fp.close()
 
                 image = Image.open(io.BytesIO(data))
+                image = image.resize((400, 400),Image.ANTIALIAS)
             except Exception, e:
                 do_exception('network', 'gui')
-                image = Image.open('default_profile_5_400x400.png')
+                image = egg
 
             #if (image.size() != size):
-            image = image.resize((400, 400),Image.ANTIALIAS)
+
             photo = ImageTk.PhotoImage(image)
             #photo.resize(size)
 
