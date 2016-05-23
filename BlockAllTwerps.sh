@@ -5,6 +5,8 @@ pushd `dirname $0` > /dev/null
 program_dir=`pwd`
 popd > /dev/null
 
+sleep 20
+
 while true
     do
       cd $program_dir
