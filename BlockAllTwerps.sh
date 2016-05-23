@@ -10,6 +10,6 @@ sleep 20
 while true
     do
       cd $program_dir
-      python BlockAllTwerps.py -fullscreen
-      sleep 1
+      /usr/bin/python BlockAllTwerps.py -fullscreen
+      sleep 5
 done
