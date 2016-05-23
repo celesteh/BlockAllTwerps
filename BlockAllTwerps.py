@@ -403,7 +403,7 @@ while True:
                             api.update_status('Now blocking tweet {}'.format(tweet))
                         except Exception, e:
                             print str(e)
-                            do_exception (e, 'tweeting')
+                            #do_exception (e, 'tweeting')
 
                         number_of_blocked = 0
                         j = 0;
