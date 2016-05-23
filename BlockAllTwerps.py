@@ -1,7 +1,7 @@
 import tweepy
 import re
 from time import time, sleep
-from datetime import datetime
+import datetime
 import os
 import glob
 import Tkinter as tk
@@ -115,11 +115,17 @@ def display_user (twerp, duplicate =False):
             mainframe = tk.Frame(root, bg="black")
             mainframe.pack(padx=5, pady=5, fill="both", expand=True)
 
-            fp = urllib.urlopen(img)
-            data = fp.read()
-            fp.close()
+            try:
+                #look out for network errors
+                fp = urllib.urlopen(img)
+                data = fp.read()
+                fp.close()
 
-            image = Image.open(io.BytesIO(data))
+                image = Image.open(io.BytesIO(data))
+            except Exception, e:
+                do_exception('network', 'gui')
+                image = Image.open('default_profile_5_400x400.png')
+
             #if (image.size() != size):
             image = image.resize((400, 400),Image.ANTIALIAS)
             photo = ImageTk.PhotoImage(image)
@@ -142,7 +148,8 @@ def display_user (twerp, duplicate =False):
 def do_exception (e, twerp_type='Tweeter'):
     print str(e)
     print 'Exception: {}'.format(twerp_type)
-    continue_time = datetime.fromtimestamp(time() + (60 * 5 * 1000)).strftime('%H:%M:%S')
+    continue_time = (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime('%H:%M:%S')
+    print(continue_time)
     display_wait(continue_time)
     sleep(60 * 5)
     print 'Recovering'
@@ -206,7 +213,7 @@ def check_limit (force=False):
         if (number_of_friendship_requests >= 175) or force: # rate limit is 180 per 15 minutes
             reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
             print('')
-            continue_time = datetime.fromtimestamp(reset).strftime('%H:%M:%S')
+            continue_time = datetime.datetime.fromtimestamp(reset).strftime('%H:%M:%S')
             print 'waiting for rate limit... (will continue at {})'.format(continue_time)
             display_wait(continue_time)
             sleep(reset - time() + 1)
