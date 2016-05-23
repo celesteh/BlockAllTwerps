@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=BlockAllTwerps
+Exec=/home/pi/Code/BlockAllTwerps.sh
+Type=application
