@@ -36,7 +36,7 @@ def init():
         root.title('BlockAllTwerps')
         root.configure(background='black')
         mainframe = tk.Frame(root)
-        egg = Image.open('default_profile_5_400x400.png')
+        egg = Image.open('default_profile_5_400x400.jpg')
 
     #twitter
     auth = tweepy.OAuthHandler('CONSUMERKEY','CONSUMERSECRET')
@@ -107,7 +107,8 @@ def display_user (twerp, duplicate =False):
     img = twerp.profile_image_url
     img = img.replace('normal', '400x400')
     size = 400, 400
-    #print(handle, name, img)
+    #print(img)
+    should_continue = False
 
     if root:
         try:
@@ -124,22 +125,26 @@ def display_user (twerp, duplicate =False):
 
                 image = Image.open(io.BytesIO(data))
                 image = image.resize((400, 400),Image.ANTIALIAS)
+
+                should_continue = True
             except Exception, e:
                 do_exception('network', 'gui')
                 image = egg
+                should_continue = False
 
             #if (image.size() != size):
+            if should_continue:
 
-            photo = ImageTk.PhotoImage(image)
-            #photo.resize(size)
+                photo = ImageTk.PhotoImage(image)
+                #photo.resize(size)
 
-            title =  tk.Label(mainframe, text="Blocking", font=("FreeSans", 40), fg="white", bg="black", height=2).grid(row=0, sticky=tk.W)
-            pic = tk.Label(mainframe, image=photo, height=440, bg="black").grid(row=1, rowspan=10)
-            name = tk.Label(mainframe, text=twerp.name, font=("FreeSans", 44), fg="white", bg="black").grid(row=5, column=2, sticky=tk.W)
-            handle = tk.Label(mainframe, text='@'+twerp.screen_name, font=("FreeSans", 44), fg="blue", bg="black").grid(row=6, column=2, sticky=tk.W)
-            if duplicate:
-                tk.Label(mainframe, text='(Duplicate... already blocked)', font=("FreeSans", 30), fg="white", bg="black").grid(row=10, column=2, sticky=tk.W)
-            root.update()
+                title =  tk.Label(mainframe, text="Blocking", font=("FreeSans", 40), fg="white", bg="black", height=2).grid(row=0, sticky=tk.W)
+                pic = tk.Label(mainframe, image=photo, height=440, bg="black").grid(row=1, rowspan=10)
+                name = tk.Label(mainframe, text=twerp.name, font=("FreeSans", 44), fg="white", bg="black").grid(row=5, column=2, sticky=tk.W)
+                handle = tk.Label(mainframe, text='@'+twerp.screen_name, font=("FreeSans", 44), fg="blue", bg="black").grid(row=6, column=2, sticky=tk.W)
+                if duplicate:
+                    tk.Label(mainframe, text='(Duplicate... already blocked)', font=("FreeSans", 30), fg="white", bg="black").grid(row=10, column=2, sticky=tk.W)
+                root.update()
         except Exception, e:
             dump_blocks()
             print('gui failed')
