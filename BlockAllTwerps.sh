@@ -28,5 +28,6 @@ while true
         wait $pid
         kill $alive_pid
 
+        sudo shutdown -r now
         sleep 5
 done
