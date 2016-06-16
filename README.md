@@ -20,6 +20,11 @@ On a Raspberry pi:
 * Set the installation to start automatically, headlessly:
   * Edit BlockAllTwerps.init.d so the path in it points to where you have put the files
   * `cp BlockAllTwerps.init.d /etc/init.d/BlockAllTwerps`
+  * Make script executable `sudo chmod 755 /etc/init.d/BlockAllTwerps`
+  * Test starting the program `sudo /etc/init.d/BlockAllTwerps start`
+  * Test stopping the program `sudo /etc/init.d/BlockAllTwerps stop`
+  * To register your script to be run at start-up and shutdown, `sudo update-rc.d BlockAllTwerps defaults`
+  * If you ever want to remove the script from start-up, `sudo update-rc.d -f BlockAllTwerps remove`
 
 * If you install both of the above and boot into a GUI, it will run the installation
 * If you want to change whether it runs headlessly or not `sudo raspi-config`
