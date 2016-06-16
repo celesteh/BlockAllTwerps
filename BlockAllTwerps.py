@@ -10,7 +10,9 @@ from PIL import Image, ImageTk
 import urllib
 import io
 from math import floor
+import setproctitle
 
+setproctitle.setproctitle('BlockAllTwerps')
 
 root = None
 mainframe = None
@@ -92,9 +94,11 @@ def init():
         #print ('start gui')
 
 def touch ():
-    print ('touch')
-    if not os.path.exists('/tmp/blockalltwerps'):
-        open('/tmp/blockalltwerps', 'a').close()
+    global root
+    if root:
+      print ('touch')
+      if not os.path.exists('/tmp/blockalltwerps'):
+          open('/tmp/blockalltwerps', 'a').close()
     return
 
 def update_gui ():

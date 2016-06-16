@@ -5,6 +5,9 @@ pushd `dirname $0` > /dev/null
 program_dir=`pwd`
 popd > /dev/null
 
+#stop the service
+/etc/init.d/BlockAllTwerps stop
+
 sleep 20
 cd $program_dir
 
