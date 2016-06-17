@@ -282,7 +282,7 @@ def load_blocks():
         with open(csv_file, 'r') as losers:
             for twerp in losers:
                 twerp = twerp.rstrip()
-                blocked.append(id_str)
+                blocked.append(twerp)
 
     block.sort()
 
