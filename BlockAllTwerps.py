@@ -323,7 +323,8 @@ def check_limit (force=False):
     touch()
     try:
         if (number_of_friendship_requests >= 175) or force: # rate limit is 180 per 15 minutes
-            reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
+            rls = api.rate_limit_status()['resources']
+            reset =rls['friendships']['/friendships/show']['reset']
 
             # If we've gone on so long we're in a new period, don't bother to wait
             if (reset == last_reset) or (reset == 0) or force:
@@ -334,17 +335,20 @@ def check_limit (force=False):
                 #sleep(reset - time() + 1)
                 print(reset - time() + 1)
                 do_wait(reset - time() + 1)
-                umber_of_friendship_requests = 0
+                number_of_friendship_requests = 0
+                rls = api.rate_limit_status()['resources']
+                #last_reset =rls['friendships']['/friendships/show']['reset']
             else:
                 print 'wait not needed'
-                
-            rls = api.rate_limit_status()['resources']
-            friendship_limit = rls ['friendships']['/friendships/show']
-            number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
-            lookups = (rls['users']["/users/show/:id"]['limit'] - rls['users']["/users/show/:id"]['remaining'])
-            #print('lookups', lookups)
-            number_of_friendship_requests = max(number_of_friendship_requests, lookups)
-            #number_of_friendship_requests /= 4
+
+                #rls = api.rate_limit_status()['resources']
+                friendship_limit = rls ['friendships']['/friendships/show']
+                number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
+                lookups = (rls['users']["/users/show/:id"]['limit'] - rls['users']["/users/show/:id"]['remaining'])
+                #print('lookups', lookups)
+                number_of_friendship_requests = max(number_of_friendship_requests, lookups)
+                #number_of_friendship_requests /= 4
+
             last_reset =rls['friendships']['/friendships/show']['reset'] #api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
     except Exception, e:
         do_exception(e, 'api limit')
