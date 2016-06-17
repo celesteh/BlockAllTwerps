@@ -341,7 +341,7 @@ def check_limit (force=False):
             else:
                 print 'wait not needed'
 
-                old = number_of_friendship_requests /3
+                old = number_of_friendship_requests /2
                 #rls = api.rate_limit_status()['resources']
                 friendship_limit = rls ['friendships']['/friendships/show']
                 number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
