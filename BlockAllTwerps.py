@@ -348,9 +348,15 @@ def block_twerp ( twerp, type_str, i=0 ):
     return i+1
 
 def block_followers ( twerp ):
+    global root
+
     last_i = 0
     this_i = 0
     unchanged = 0
+    limit = 50
+    if root:
+        limit = 10
+
     try:
         #for i, follower in limit_handled(tweepy.Cursor(api.followers, screen_name=twerp.screen_name).items()):
         for i, follower in enumerate(tweepy.Cursor(api.followers, screen_name=twerp.screen_name).items()):
@@ -361,7 +367,7 @@ def block_followers ( twerp ):
                 # if we've had a lot of duplicates, we still need to be aware of API limits
                 if (last_i == this_i):
                     unchanged +=1
-                    if (unchanged >= 10):
+                    if (unchanged >= limit):
                         check_limit()
                         unchanged = 0
                 else: #we've blocked someone
