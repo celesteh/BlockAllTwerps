@@ -1,7 +1,7 @@
 # BlockAllTwerps
 A twitter bot to block people
 
-Requires: tweepy, PIL
+Requires: tweepy, PIL, setproctitle
 
 
 On a Raspberry pi:
