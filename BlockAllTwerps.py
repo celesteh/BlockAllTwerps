@@ -275,7 +275,7 @@ def limit_handled(cursor):
             do_wait(15*60)
 
 
-def load_blocks:
+def load_blocks():
     global blocked
     files = glob.glob("data/*.csv")
     for csv_file in files:
