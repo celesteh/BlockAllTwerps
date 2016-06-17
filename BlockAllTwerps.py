@@ -284,7 +284,7 @@ def load_blocks():
                 twerp = twerp.rstrip()
                 blocked.append(twerp)
 
-    block.sort()
+    blocked.sort()
 
 
 def check_duplicate ( id_str ):
