@@ -93,6 +93,7 @@ def init():
 
     #if root:
         #print ('start gui')
+    load_blocks()
 
 def touch ():
     global root
@@ -260,6 +261,7 @@ def dump_blocks ():
             f.close()
             blocked = []
             files = glob.glob("data/*.csv")
+            load_blocks()
         except Exception, e:
             do_exception('file writing')
 
@@ -273,6 +275,17 @@ def limit_handled(cursor):
             do_wait(15*60)
 
 
+def load_blocks:
+    global blocked
+    files = glob.glob("data/*.csv")
+    for csv_file in files:
+        with open(csv_file, 'r') as losers:
+            for twerp in losers:
+                twerp = twerp.rstrip()
+                blocked.append(id_str)
+
+    block.sort()
+
 
 def check_duplicate ( id_str ):
 
@@ -280,7 +293,7 @@ def check_duplicate ( id_str ):
 
     if id_str in blocked:
         duplicate = True
-
+    '''
     if not duplicate:
         for csv_file in files:
             with open(csv_file, 'r') as losers:
@@ -293,6 +306,7 @@ def check_duplicate ( id_str ):
                         break
             if duplicate:
                 break
+    '''
     return duplicate
 
 
