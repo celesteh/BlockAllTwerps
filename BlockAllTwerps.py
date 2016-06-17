@@ -24,6 +24,7 @@ number_of_friendship_requests = 0
 number_of_blocked = 0
 j = 0;
 blocked = []
+newly_blocked =[]
 files = []
 last_reset = 0
 
@@ -252,14 +253,14 @@ def do_exception (e, twerp_type='Tweeter'):
 
 
 def dump_blocks ():
-    global blocked
-    if len(blocked) > 0:
+    global newly_blocked
+    if len(newly_blocked) > 0:
         try:
             f = file('data/block_list'+ str(time())+'.csv', 'w')
-            for item in blocked:
+            for item in newly_blocked:
                 f.write(item+'\n')
             f.close()
-            blocked = []
+            newly_blocked = []
             files = glob.glob("data/*.csv")
             load_blocks()
         except Exception, e:
@@ -277,6 +278,7 @@ def limit_handled(cursor):
 
 def load_blocks():
     global blocked
+    blocked=[]
     files = glob.glob("data/*.csv")
     for csv_file in files:
         with open(csv_file, 'r') as losers:
@@ -291,8 +293,11 @@ def check_duplicate ( id_str ):
 
     duplicate = False
 
-    if id_str in blocked:
+    if id_str in newly_blocked:
         duplicate = True
+    else :
+        if id_str in blocked:
+            duplicate = True
     '''
     if not duplicate:
         for csv_file in files:
@@ -361,8 +366,8 @@ def block_twerp ( twerp, type_str, i=0 ):
             number_of_blocked += 1
             #print 'blocked ({} already)'.format(number_of_blocked)
             api.create_block(screen_name=twerp.screen_name)
-            blocked.append(twerp.id_str)
-            blocked.sort()
+            newly_blocked.append(twerp.id_str)
+            newly_blocked.sort()
 
     sleep(1)
     return i+1
