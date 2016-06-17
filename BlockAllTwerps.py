@@ -378,7 +378,7 @@ def block_followers ( twerp ):
     last_i = 0
     this_i = 0
     unchanged = 0
-    limit = 50
+    limit = 40
     if root:
         limit = 10
 
