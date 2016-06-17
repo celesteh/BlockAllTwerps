@@ -341,7 +341,7 @@ def check_limit (force=False):
             else:
                 print 'wait not needed'
 
-                old = number_of_friendship_requests /4
+                old = number_of_friendship_requests /3
                 #rls = api.rate_limit_status()['resources']
                 friendship_limit = rls ['friendships']['/friendships/show']
                 number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
@@ -393,9 +393,9 @@ def block_followers ( twerp ):
     last_i = 0
     this_i = 0
     unchanged = 0
-    limit = 10
-    #if root:
-    #    limit = 10
+    limit = 15
+    if root:
+        limit = 10
 
     try:
         #for i, follower in limit_handled(tweepy.Cursor(api.followers, screen_name=twerp.screen_name).items()):
