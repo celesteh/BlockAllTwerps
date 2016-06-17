@@ -341,12 +341,14 @@ def check_limit (force=False):
             else:
                 print 'wait not needed'
 
+                old = number_of_friendship_requests /4
                 #rls = api.rate_limit_status()['resources']
                 friendship_limit = rls ['friendships']['/friendships/show']
                 number_of_friendship_requests = friendship_limit['limit'] - friendship_limit['remaining']
                 lookups = (rls['users']["/users/show/:id"]['limit'] - rls['users']["/users/show/:id"]['remaining'])
                 #print('lookups', lookups)
                 number_of_friendship_requests = max(number_of_friendship_requests, lookups)
+                number_of_friendship_requests = max(number_of_friendship_requests, old)
                 #number_of_friendship_requests /= 4
 
             last_reset =rls['friendships']['/friendships/show']['reset'] #api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
@@ -391,7 +393,7 @@ def block_followers ( twerp ):
     last_i = 0
     this_i = 0
     unchanged = 0
-    limit = 40
+    limit = 30
     if root:
         limit = 10
 
