@@ -25,6 +25,7 @@ number_of_blocked = 0
 j = 0;
 blocked = []
 files = []
+last_reset = 0
 
 def init():
     global config, egg, root, mainframe, api, me, number_of_blocked, number_of_friendship_requests, files
@@ -297,21 +298,26 @@ def check_duplicate ( id_str ):
 
 
 def check_limit (force=False):
-    global number_of_friendship_requests, api
+    global number_of_friendship_requests, api, last_reset
 
     number_of_friendship_requests += 1
     touch()
     try:
         if (number_of_friendship_requests >= 175) or force: # rate limit is 180 per 15 minutes
             reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
-            print('')
-            continue_time = datetime.datetime.fromtimestamp(reset).strftime('%H:%M:%S')
-            print 'waiting for rate limit... (will continue at {})'.format(continue_time)
-            #display_wait(continue_time)
-            #sleep(reset - time() + 1)
-            print(reset - time() + 1)
-            do_wait(reset - time() + 1)
-            number_of_friendship_requests = 0
+
+            # If we've gone on so long we're in a new period, don't bother to wait
+            if (reset == last_reset) or (reset == 0):
+                print('')
+                continue_time = datetime.datetime.fromtimestamp(reset).strftime('%H:%M:%S')
+                print 'waiting for rate limit... (will continue at {})'.format(continue_time)
+                #display_wait(continue_time)
+                #sleep(reset - time() + 1)
+                print(reset - time() + 1)
+                do_wait(reset - time() + 1)
+                number_of_friendship_requests = 0
+
+            last_reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
     except Exception, e:
         do_exception(e, 'api limit')
     return
