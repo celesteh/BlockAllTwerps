@@ -338,7 +338,7 @@ def check_limit (force=False):
             else:
                 print 'wait not needed'
 
-            number_of_friendship_requests /= 2
+            number_of_friendship_requests /= 4
             last_reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
     except Exception, e:
         do_exception(e, 'api limit')
