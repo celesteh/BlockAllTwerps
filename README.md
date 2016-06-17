@@ -28,4 +28,5 @@ On a Raspberry pi:
 
 * If you install both of the above and boot into a GUI, it will run the installation
 * If you want to change whether it runs headlessly or not `sudo raspi-config`
+* If the network requires alogin via a web page, you will need to install lynx
 
