@@ -307,7 +307,7 @@ def check_limit (force=False):
             reset = api.rate_limit_status()['resources']['friendships']['/friendships/show']['reset']
 
             # If we've gone on so long we're in a new period, don't bother to wait
-            if (reset == last_reset) or (reset == 0):
+            if (reset == last_reset) or (reset == 0) or force:
                 print('')
                 continue_time = datetime.datetime.fromtimestamp(reset).strftime('%H:%M:%S')
                 print 'waiting for rate limit... (will continue at {})'.format(continue_time)
