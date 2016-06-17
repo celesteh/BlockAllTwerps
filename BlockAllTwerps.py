@@ -393,9 +393,9 @@ def block_followers ( twerp ):
     last_i = 0
     this_i = 0
     unchanged = 0
-    limit = 20
-    if root:
-        limit = 10
+    limit = 10
+    #if root:
+    #    limit = 10
 
     try:
         #for i, follower in limit_handled(tweepy.Cursor(api.followers, screen_name=twerp.screen_name).items()):
