@@ -15,6 +15,7 @@ eval cd /home/pi/Code/BlockAllTwerps/
 
 case "$1" in
   start)
+    sleep 180
     su $USER -c '/usr/bin/python /home/pi/Code/BlockAllTwerps/BlockAllTwerps.py'
     echo "Starting BlockAllTwerps"
     ;;
